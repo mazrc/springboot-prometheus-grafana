@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms1
+  labels:
+    app: ms1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms1
+  template:
+    metadata:
+      labels:
+        app: ms1
+    spec:
+      containers:
+      - name: ms1
+        image: localhost:32000/ms1-beta1:registry
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms1-service
+  labels:
+    app: ms1
+spec:
+  selector:
+    app: ms1
+  ports:
+    - protocol: TCP
+      name: http-traffic
+      port: 8080
+      targetPort: 8080
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: spring-prometheus-demo-service-monitor
+spec:
+  selector:
+    matchLabels:
+      app: ms1
+  endpoints:
+  - port: http-traffic
+    path: "/actuator/prometheus"
